@@ -90,7 +90,12 @@ $gutter:                24px!default;
 //
 // Would you like Sass’ silent classes, or regular CSS classes?
 //
-$use-silent-classes:    false!default;
+//$use-silent-classes:    false!default;
+//
+// Output CSS classes for grid* but not for widths/push/pull
+$use-html-classes:     true!default;
+// Outputs classes for everything. Not recommended.
+$use-all-html-classes: false!default;
 
 
 //
@@ -147,11 +152,16 @@ $breakpoint-has-pull:   ('palm', 'lap', 'portable', 'desk')!default;
 // You do not need to edit anything from this line onward; csswizardry-grids is
 // good to go. Happy griddin’!
 //
-$class-type:            unquote(".");
 
-@if $use-silent-classes == true{
-    $class-type:        unquote("%");
-}
+// We can just change this for now, no need to replace throughout the file
+// In fact it only should be removed from the *grid classes as we leverage
+// it for the width, push and pulls
+$class-type:            unquote("%");
+
+//$class-type:            unquote(".");
+//@if $use-silent-classes == true{
+//    $class-type:        unquote("%");
+//}
 
 
 
@@ -163,6 +173,8 @@ $class-type:            unquote(".");
 //
 // These mixins are for the library to use only, you should not need to modify
 // them at all.
+
+//@import 'grid-media-query';
 //
 // Enclose a block of code with a media query as named in `$breakpoints`.
 //
@@ -187,15 +199,16 @@ $class-type:            unquote(".");
     }
 }
 
-
 //
 // Drop relative positioning into silent classes which can’t take advantage of
 // the `[class*="push--"]` and `[class*="pull--"]` selectors.
 //
 @mixin silent-relative(){
-    @if $use-silent-classes == true{
+        // Always drop this in as silent classes are always on
         position:relative;
-    }
+//    @if $use-silent-classes == true{
+//        position:relative;
+//    }
 }
 
 
@@ -358,7 +371,7 @@ $class-type:            unquote(".");
 //
 // Create our width classes, prefixed by the specified namespace.
 //
-@mixin device-type($namespace:""){
+@mixin device-type($namespace:"", $class-type:"%"){
 
 
     //
@@ -457,6 +470,10 @@ $class-type:            unquote(".");
 //
 @include device-type();
 
+@if $use-all-html-classes {
+  @include device-type($class-type:".");
+}
+
 
 //
 // Our responsive classes, if we have enabled them.
@@ -466,6 +483,12 @@ $class-type:            unquote(".");
     @each $name in $breakpoint-has-widths {
         @include grid-media-query($name) {
            @include device-type('#{$name}--');
+        }
+
+        @if $use-all-html-classes {
+            @include grid-media-query($name) {
+               @include device-type('#{$name}--', $class-type: ".");
+            }
         }
     }
 
@@ -482,7 +505,7 @@ $class-type:            unquote(".");
 //
 // Push classes, to move grid items over to the right by certain amounts.
 //
-@mixin push-setup($namespace: ""){
+@mixin push-setup($namespace: "", $class-type:"%"){
 
     //
     // Whole
@@ -582,11 +605,17 @@ $class-type:            unquote(".");
 
     @include push-setup();
 
+    @if $use-all-html-classes {
+        @include push-setup($class-type:".");
+    }
 
     @if $responsive == true{
         @each $name in $breakpoint-has-push {
             @include grid-media-query($name) {
                @include  push-setup('#{$name}--');
+            }
+            @if $use-all-html-classes {
+               @include  push-setup('#{$name}--', $class-type:".");
             }
         }
     }
@@ -604,7 +633,7 @@ $class-type:            unquote(".");
 //
 // Pull classes, to move grid items back to the left by certain amounts.
 //
-@mixin pull-setup($namespace: ""){
+@mixin pull-setup($namespace: "", $class-type: "%"){
 
     //
     // Whole
@@ -705,14 +734,34 @@ $class-type:            unquote(".");
     @include pull-setup();
 
 
+    @if $use-all-html-classes {
+        @include pull-setup($class-type:".");
+    }
+
     @if $responsive == true{
         @each $name in $breakpoint-has-pull {
             @include grid-media-query($name) {
                @include  pull-setup('#{$name}--');
             }
+            @if $use-all-html-classes {
+               @include  pull-setup('#{$name}--', $class-type:".");
+            }
         }
     }
 
 
+}
+
+@if $use-html-classes {
+  .grid { @extend %grid; }
+  .grid__item { @extend %grid__item; }
+  .grid--rev { @extend %grid--rev; }
+  .grid--full { @extend %grid--full; }
+  .grid--right { @extend %grid--right; }
+  .grid--center { @extend %grid--center; }
+  .grid--middle { @extend %grid--middle; }
+  .grid--bottom { @extend %grid--bottom; }
+  .grid--narrow { @extend %grid--narrow; }
+  .grid--wide { @extend %grid--wide; }
 }
 
